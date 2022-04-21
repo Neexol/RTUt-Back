@@ -2,29 +2,40 @@ package ru.neexol.db
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.StdOutSqlLogger
-import org.jetbrains.exposed.sql.addLogger
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import ru.neexol.db.tables.*
 
 object DatabaseFactory {
     fun init() {
         Database.connect(hikari())
 
         transaction {
-            with(SchemaUtils) {
-                // tables
-            }
+            SchemaUtils.createTables()
+            TimesTable.insertTimes()
             addLogger(StdOutSqlLogger)
         }
     }
 
     private fun hikari() = HikariDataSource(HikariConfig().apply {
         jdbcUrl = System.getenv("JDBC_DATABASE_URL")
-        maximumPoolSize = 3
+        maximumPoolSize = 5
         isAutoCommit = false
         transactionIsolation = "TRANSACTION_REPEATABLE_READ"
         validate()
     })
+
+    private fun SchemaUtils.createTables() {
+        create(TimesTable)
+        create(FilesTable)
+        create(LessonsTable)
+    }
+
+    private fun TimesTable.insertTimes() {
+        if (selectAll().toList().isEmpty()) {
+            repeat(6) { i ->
+                insert { it[id] = i }
+            }
+        }
+    }
 }
