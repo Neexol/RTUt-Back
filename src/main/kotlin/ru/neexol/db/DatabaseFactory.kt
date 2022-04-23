@@ -2,7 +2,9 @@ package ru.neexol.db
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import ru.neexol.db.tables.*
 
@@ -11,9 +13,7 @@ object DatabaseFactory {
         Database.connect(hikari())
 
         transaction {
-            SchemaUtils.createTables()
-            TimesTable.insertTimes()
-            addLogger(StdOutSqlLogger)
+            SchemaUtils.create(FilesTable, LessonsTable)
         }
     }
 
@@ -25,17 +25,6 @@ object DatabaseFactory {
         validate()
     })
 
-    private fun SchemaUtils.createTables() {
-        create(TimesTable)
-        create(FilesTable)
-        create(LessonsTable)
-    }
-
-    private fun TimesTable.insertTimes() {
-        if (selectAll().toList().isEmpty()) {
-            repeat(6) { i ->
-                insert { it[id] = i }
-            }
-        }
-    }
+    suspend fun <T> dbQuery(block: suspend () -> T): T =
+        newSuspendedTransaction(Dispatchers.IO) { block() }
 }

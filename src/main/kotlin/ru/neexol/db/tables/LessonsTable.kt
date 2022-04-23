@@ -7,9 +7,8 @@ object LessonsTable : UUIDTable() {
     val type      = text("type")
     val teacher   = text("teacher")
     val classroom = text("classroom")
-    val group     = text("group")
+    val group     = reference("group", GroupsTable)
     val day       = integer("day")
     val number    = integer("number")
     val weeks     = text("weeks")
-    val file      = reference("file", FilesTable)
 }

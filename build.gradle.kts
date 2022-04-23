@@ -4,6 +4,9 @@ val logbackVersion: String by project
 val exposedVersion: String by project
 val hikariVersion: String by project
 val postgresJDBCVersion: String by project
+val jsoupVersion: String by project
+val apachePOIVersion: String by project
+val apacheLog4jVersion: String by project
 
 plugins {
     application
@@ -41,4 +44,14 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("org.postgresql:postgresql:$postgresJDBCVersion")
+
+    // Jsoup
+    implementation("org.jsoup:jsoup:$jsoupVersion")
+
+    // Apache POI
+    implementation("org.apache.poi:poi:$apachePOIVersion")
+    implementation("org.apache.poi:poi-ooxml:$apachePOIVersion")
+
+    // Apache Log4j
+    implementation("org.apache.logging.log4j:log4j-core:$apacheLog4jVersion")
 }

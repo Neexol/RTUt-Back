@@ -14,10 +14,9 @@ class LessonEntity(id: EntityID<UUID>) : UUIDEntity(id) {
     var type      by LessonsTable.type
     var teacher   by LessonsTable.teacher
     var classroom by LessonsTable.classroom
-    var group     by LessonsTable.group
+    var group     by GroupEntity referencedOn LessonsTable.group
     var day       by LessonsTable.day
     var number    by LessonsTable.number
-    var file      by FileEntity referencedOn LessonsTable.file
     var weeks     by LessonsTable.weeks.transform(
         { it.joinToString(SEPARATOR) },
         { it.split(SEPARATOR).mapNotNull(String::toIntOrNull) }
