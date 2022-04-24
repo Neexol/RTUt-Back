@@ -6,13 +6,14 @@ import java.io.InputStream
 
 class ExcelParser(fileStream: InputStream) {
     private companion object {
-        val GROUP_PATTERN = Regex("[А-ЯЁ]{4}(-\\d{2}){2}")
-        val TEACHER_PATTERN = Regex("[а-яёА-ЯЁ]+ [А-Я]\\.[А-Я]\\.")
-        val WEEKS_RANGE_PATTERN = Regex("\\d+-\\d+")
-        val EMPTY_LESSON_PATTERN = Regex("[…. ]*")
+        val GROUP_PATTERN = "[А-ЯЁ]{4}(-\\d{2}){2}".toRegex()
+        val TEACHER_PATTERN = "[а-яёА-ЯЁ]+ [А-Я]\\.[А-Я]\\.".toRegex()
+        val WEEKS_RANGE_PATTERN = "\\d+-\\d+".toRegex()
+        val EMPTY_LESSON_PATTERN = "[…. ]*".toRegex()
+        val WHITESPACES_PATTERN = " +".toRegex()
+        val WEEKS_PREFIX_PATTERN = "(кр\\.? )?[ \\d,-]+(н +|н\\. *)".toRegex()
 
-        const val EXCLUDE_WEEKS_PREFIX = "кр. "
-        const val WEEKS_SUFFIX = " н."
+        const val EXCLUDE_SIGN = "кр"
         const val NEW_LINE_SYMBOL = '\n'
 
         const val DAYS_NUMBER = 6
@@ -50,7 +51,10 @@ class ExcelParser(fileStream: InputStream) {
     private fun getLessonData(rowIndex: Int, colBias: Int): List<List<String>> {
         val row = wbSheet.getRow(3 + rowIndex)
         val (name, type, teacher, classroom) = List(4) { col ->
-            row.getCell(colBias + col)?.toString()?.removeSuffix(".0") ?: ""
+            row.getCell(colBias + col)?.toString()
+                ?.removeSuffix(".0")
+                ?.replace(WHITESPACES_PATTERN, " ")
+                ?: ""
         }
 
         val splitName = name.split(NEW_LINE_SYMBOL)
@@ -60,12 +64,21 @@ class ExcelParser(fileStream: InputStream) {
         } else listOf(teacher)
         val splitClassroom = classroom.split(NEW_LINE_SYMBOL)
 
-        return List(splitName.size) { listOf(
-            splitName[it],
-            splitType.getOrNull(it) ?: splitType[0],
-            splitTeacher.getOrNull(it) ?: splitTeacher[0],
-            splitClassroom.getOrNull(it) ?: splitClassroom[0]
-        ) }
+        return if (splitName.size == 1) {
+            List(1) { listOf(
+                splitName[0],
+                splitType.joinToString(" "),
+                splitTeacher.joinToString(" "),
+                splitClassroom.joinToString(" ")
+            ) }
+        } else {
+            List(splitName.size) { listOf(
+                splitName[it],
+                splitType.getOrNull(it) ?: splitType[0],
+                splitTeacher.getOrNull(it) ?: splitTeacher[0],
+                splitClassroom.getOrNull(it) ?: splitClassroom[0]
+            ) }
+        }
     }
 
     private fun String.isEmptyLesson() = this matches EMPTY_LESSON_PATTERN
@@ -74,11 +87,13 @@ class ExcelParser(fileStream: InputStream) {
         var name = rawName
         var resultWeeks = (index % 2 + 1..index % 2 + 15 step 2).toSet()
 
-        val weeksIndex = name.indexOf(WEEKS_SUFFIX)
-        if (weeksIndex != -1) {
-            val (type, weeks) = parseWeeks(name.take(weeksIndex))
+        WEEKS_PREFIX_PATTERN.find(name)?.let { match ->
+            val weeksStr = match.value
+                .dropLastWhile { !it.isDigit() }
+                .replace(WHITESPACES_PATTERN, "")
+            val (type, weeks) = parseWeeks(weeksStr)
             resultWeeks = if (type == WeeksType.INCLUDE) weeks else resultWeeks.minus(weeks)
-            name = name.drop(weeksIndex + WEEKS_SUFFIX.length)
+            name = name.drop(match.value.length)
         }
 
         return name to resultWeeks.toList()
@@ -86,18 +101,18 @@ class ExcelParser(fileStream: InputStream) {
 
 
     private fun parseWeeks(rawWeeks: String): Pair<WeeksType, Set<Int>> {
-        var weeks = rawWeeks
-        var type = WeeksType.INCLUDE
-        if (weeks.startsWith(EXCLUDE_WEEKS_PREFIX)) {
-            weeks = weeks.drop(EXCLUDE_WEEKS_PREFIX.length)
-            type = WeeksType.EXCLUDE
+        var weeks = rawWeeks.dropWhile { !it.isDigit() }
+        val type = if (rawWeeks.startsWith(EXCLUDE_SIGN)) {
+            WeeksType.EXCLUDE
+        } else {
+            WeeksType.INCLUDE
         }
 
-        WEEKS_RANGE_PATTERN.findAll(weeks).forEach {
-            weeks = weeks.replaceFirst(it.value, it.value.expandWeeks())
+        WEEKS_RANGE_PATTERN.findAll(weeks).toList().reversed().forEach {
+            weeks = weeks.replaceRange(it.range, it.value.expandWeeks())
         }
 
-        return type to weeks.split(',').mapNotNull(String::toIntOrNull).toSet()
+        return type to weeks.split(',').map(String::toInt).toSet()
     }
 
     private fun String.expandWeeks() = split('-').map(String::toInt).let {
