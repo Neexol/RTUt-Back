@@ -50,7 +50,7 @@ class ExcelParser(fileStream: InputStream) {
     private fun getLessonData(rowIndex: Int, colBias: Int): List<List<String>> {
         val row = wbSheet.getRow(3 + rowIndex)
         val (name, type, teacher, classroom) = List(4) { col ->
-            row.getCell(colBias + col)?.toString() ?: ""
+            row.getCell(colBias + col)?.toString()?.removeSuffix(".0") ?: ""
         }
 
         val splitName = name.split(NEW_LINE_SYMBOL)
