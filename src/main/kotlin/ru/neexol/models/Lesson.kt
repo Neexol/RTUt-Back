@@ -1,5 +1,6 @@
 package ru.neexol.models
 
+@kotlinx.serialization.Serializable
 data class Lesson(
     val name: String,
     val type: String,

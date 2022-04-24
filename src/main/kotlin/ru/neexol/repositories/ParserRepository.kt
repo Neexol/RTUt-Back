@@ -15,7 +15,7 @@ import kotlin.io.path.name
 
 object ParserRepository {
     suspend fun updateSchedule() {
-        val schedule = WebsiteParser.fetchLessonsFilesURLs().associate { url ->
+        val schedule = WebsiteParser.parseLessonsFilesURLs().associate { url ->
             Path(url.path).name to url.openStream().use { ExcelParser(it).parse() }
         }
 
@@ -23,27 +23,33 @@ object ParserRepository {
             LessonsTable.deleteAll()
             GroupsTable.deleteAll()
             FilesTable.deleteAll()
+        }
 
+        dbQuery {
             schedule.forEach { (fileName, groups) ->
                 val file = FileEntity.new {
                     this.name = fileName
                     this.checksum = "empty"
                 }
                 groups.forEach { (groupName, lessons) ->
-                    val group = GroupEntity.new {
-                        this.name = groupName
-                        this.file = file
-                    }
-                    lessons.forEach { lesson ->
-                        LessonEntity.new {
-                            this.name = lesson.name
-                            this.type = lesson.type
-                            this.teacher = lesson.teacher
-                            this.classroom = lesson.classroom
-                            this.group = group
-                            this.day = lesson.day
-                            this.number = lesson.number
-                            this.weeks = lesson.weeks
+                    GroupEntity.find {
+                        GroupsTable.name eq groupName
+                    }.singleOrNull() ?: run {
+                        val group = GroupEntity.new {
+                            this.name = groupName
+                            this.file = file
+                        }
+                        lessons.forEach { lesson ->
+                            LessonEntity.new {
+                                this.name = lesson.name
+                                this.type = lesson.type
+                                this.teacher = lesson.teacher
+                                this.classroom = lesson.classroom
+                                this.group = group
+                                this.day = lesson.day
+                                this.number = lesson.number
+                                this.weeks = lesson.weeks
+                            }
                         }
                     }
                 }
