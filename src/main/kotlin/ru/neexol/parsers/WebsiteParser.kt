@@ -7,7 +7,7 @@ object WebsiteParser {
     private const val SCHEDULE_URL = "https://www.mirea.ru/schedule/"
     private const val LINKS_SELECTOR = "#tab-content > li:nth-child(1) a.uk-link-toggle"
 
-    private fun fetchFilesPaths(predicate: (String) -> Boolean) = Jsoup.connect(SCHEDULE_URL).get()
+    private fun parseFilesPaths(predicate: (String) -> Boolean) = Jsoup.connect(SCHEDULE_URL).get()
         .select(LINKS_SELECTOR)
         .eachAttr("href")
         .mapNotNull {
@@ -16,6 +16,6 @@ object WebsiteParser {
             }
         }
 
-    fun fetchLessonsFilesURLs() = fetchFilesPaths { !it.contains("экз") }
-    fun fetchExamsFilesURLs() = fetchFilesPaths { it.contains("экз") }
+    fun parseLessonsFilesURLs() = parseFilesPaths { !it.contains("экз") }
+    fun parseExamsFilesURLs() = parseFilesPaths { it.contains("экз") }
 }

@@ -12,6 +12,7 @@ import io.ktor.server.routing.*
 import org.slf4j.event.Level
 import ru.neexol.db.DatabaseFactory
 import ru.neexol.repositories.ParserRepository
+import ru.neexol.routes.scheduleRoute
 
 fun main() {
     embeddedServer(Netty) {
@@ -33,6 +34,7 @@ fun main() {
                 ParserRepository.updateSchedule()
                 call.respondText("Updated!")
             }
+            scheduleRoute()
         }
     }.start(wait = true)
 }
