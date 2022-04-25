@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.apache.commons.codec.digest.DigestUtils
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import ru.neexol.db.entities.FileEntity
@@ -28,13 +29,19 @@ object ParserRepository {
 
         WebsiteParser.parseLessonsFilesURLs().map { url ->
             launch(Dispatchers.IO) {
-                insertFileLessons(Path(url.path).name, url.openStream().use { ExcelParser(it).parse() })
+                url.readBytes().let { bytes ->
+                    addFileLessons(
+                        Path(url.path).name,
+                        DigestUtils.sha256Hex(bytes),
+                        ExcelParser(bytes.inputStream()).parse()
+                    )
+                }
             }
         }.joinAll()
     }
 
-    private fun insertFileLessons(fileName: String, groups: Map<String, List<Lesson>>) = transaction {
-        val file = insertFile(fileName)
+    private fun addFileLessons(fileName: String, checksum: String, groups: Map<String, List<Lesson>>) = transaction {
+        val file = insertFile(fileName, checksum)
         groups.forEach { (groupName, lessons) ->
             findGroup(groupName) ?: run {
                 val group = insertGroup(groupName, file)
@@ -45,9 +52,9 @@ object ParserRepository {
         }
     }
 
-    private fun insertFile(fileName: String) = FileEntity.new {
+    private fun insertFile(fileName: String, checksum: String) = FileEntity.new {
         this.name = fileName
-        this.checksum = "empty"
+        this.checksum = checksum
     }
 
     private fun findGroup(groupName: String) = GroupEntity.find {
