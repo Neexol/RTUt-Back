@@ -12,6 +12,7 @@ import io.ktor.server.routing.*
 import org.slf4j.event.Level
 import ru.neexol.db.DatabaseFactory
 import ru.neexol.repositories.ParserRepository
+import ru.neexol.routes.checksumRoute
 import ru.neexol.routes.scheduleRoute
 
 fun main() {
@@ -35,6 +36,7 @@ fun main() {
                 call.respondText("Updated!")
             }
             scheduleRoute()
+            checksumRoute()
         }
     }.start(wait = true)
 }

@@ -27,4 +27,10 @@ object ScheduleRepository {
             it.toLesson()
         }
     }
+
+    suspend fun getChecksumByGroup(groupName: String) = dbQuery {
+        GroupEntity.find {
+            GroupsTable.name eq groupName
+        }.singleOrNull()?.file?.checksum ?: throw GroupNotFoundException()
+    }
 }
