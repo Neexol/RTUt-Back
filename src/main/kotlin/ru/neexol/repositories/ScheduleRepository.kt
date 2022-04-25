@@ -1,6 +1,5 @@
 package ru.neexol.repositories
 
-import org.jetbrains.exposed.sql.and
 import ru.neexol.db.DatabaseFactory.dbQuery
 import ru.neexol.db.entities.GroupEntity
 import ru.neexol.db.entities.LessonEntity
@@ -18,9 +17,9 @@ object ScheduleRepository {
         } ?: throw GroupNotFoundException()
     }
 
-    suspend fun getScheduleByTeacher(teacher: String, week: Int) = dbQuery {
+    suspend fun getScheduleByTeacher(teacher: String) = dbQuery {
         LessonEntity.find {
-            (LessonsTable.teacher ilike "%$teacher%") and (LessonsTable.weeks like "%$week%")
+            LessonsTable.teacher ilike "%$teacher%"
         }.distinctBy {
             "${it.teacher}${it.classroom}${it.day}${it.number}"
         }.map {

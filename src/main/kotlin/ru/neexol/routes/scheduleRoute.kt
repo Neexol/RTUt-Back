@@ -10,16 +10,11 @@ import ru.neexol.repositories.ScheduleRepository
 fun Route.scheduleRoute() {
     get("/schedule") {
         runCatching {
-            val (group, teacher, week) = listOf("group", "teacher", "week").map {
-                call.request.queryParameters[it]
-            }
-            if (group != null) {
-                ScheduleRepository.getScheduleByGroup(group)
-            } else if (teacher != null && week != null) {
-                ScheduleRepository.getScheduleByTeacher(teacher, week.toInt())
-            } else {
-                throw MissingParametersException()
-            }
+            call.request.queryParameters["group"]?.let {
+                ScheduleRepository.getScheduleByGroup(it)
+            } ?: call.request.queryParameters["teacher"]?.let {
+                ScheduleRepository.getScheduleByTeacher(it)
+            } ?: throw MissingParametersException()
         }.onSuccess {
             call.respond(it)
         }.onFailure {
