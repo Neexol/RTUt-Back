@@ -4,7 +4,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.apache.commons.codec.digest.DigestUtils
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import ru.neexol.db.entities.FileEntity
@@ -12,35 +11,34 @@ import ru.neexol.db.entities.GroupEntity
 import ru.neexol.db.entities.LessonEntity
 import ru.neexol.db.tables.FilesTable
 import ru.neexol.db.tables.GroupsTable
-import ru.neexol.db.tables.LessonsTable
 import ru.neexol.models.Lesson
 import ru.neexol.parsers.ExcelParser
 import ru.neexol.parsers.WebsiteParser
-import kotlin.io.path.Path
-import kotlin.io.path.name
+import ru.neexol.utils.ScheduleFile
 
 object ParserRepository {
-    suspend fun updateSchedule() = withContext(Dispatchers.IO) {
+    suspend fun forceUpdateSchedule() = withContext(Dispatchers.IO) {
         transaction {
-            LessonsTable.deleteAll()
-            GroupsTable.deleteAll()
             FilesTable.deleteAll()
         }
-
+        updateSchedule()
+    }
+    suspend fun updateSchedule() = withContext(Dispatchers.IO) {
         WebsiteParser.parseLessonsFilesURLs().map { url ->
             launch(Dispatchers.IO) {
-                url.readBytes().let { bytes ->
-                    addFileLessons(
-                        Path(url.path).name,
-                        DigestUtils.sha256Hex(bytes),
-                        ExcelParser(bytes.inputStream()).parse()
-                    )
+                transaction {
+                    val file = ScheduleFile(url)
+                    if (findFile(file.fileName)?.checksum != file.checksum) {
+                        val groups = ExcelParser(file.bytes.inputStream()).parse()
+                        deleteFileLessons(groups)
+                        addFileLessons(file.fileName, file.checksum, groups)
+                    }
                 }
             }
         }.joinAll()
     }
 
-    private fun addFileLessons(fileName: String, checksum: String, groups: Map<String, List<Lesson>>) = transaction {
+    private fun addFileLessons(fileName: String, checksum: String, groups: Map<String, List<Lesson>>) {
         val file = insertFile(fileName, checksum)
         groups.forEach { (groupName, lessons) ->
             findGroup(groupName) ?: run {
@@ -51,6 +49,23 @@ object ParserRepository {
             }
         }
     }
+
+    private fun deleteFileLessons(groups: Map<String, List<Lesson>>) {
+        groups.keys.forEach { groupName ->
+            GroupEntity.find {
+                GroupsTable.name eq groupName
+            }.forEach { it.delete() }
+        }
+        FileEntity.all().forEach {
+            if (it.groups.empty()) {
+                it.delete()
+            }
+        }
+    }
+
+    private fun findFile(fileName: String) = FileEntity.find {
+        FilesTable.name eq fileName
+    }.singleOrNull()
 
     private fun insertFile(fileName: String, checksum: String) = FileEntity.new {
         this.name = fileName

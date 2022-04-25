@@ -11,9 +11,9 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.slf4j.event.Level
 import ru.neexol.db.DatabaseFactory
-import ru.neexol.repositories.ParserRepository
 import ru.neexol.routes.checksumRoute
 import ru.neexol.routes.scheduleRoute
+import ru.neexol.routes.updateRoute
 
 fun main() {
     embeddedServer(Netty) {
@@ -31,10 +31,7 @@ fun main() {
             get("/") {
                 call.respondText("Hello!")
             }
-            get("/update") {
-                ParserRepository.updateSchedule()
-                call.respondText("Updated!")
-            }
+            updateRoute()
             scheduleRoute()
             checksumRoute()
         }
