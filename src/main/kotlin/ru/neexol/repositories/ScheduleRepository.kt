@@ -6,14 +6,15 @@ import ru.neexol.db.entities.LessonEntity
 import ru.neexol.db.tables.GroupsTable
 import ru.neexol.db.tables.LessonsTable
 import ru.neexol.exceptions.GroupNotFoundException
+import ru.neexol.models.Schedule
 import ru.neexol.utils.ilike
 
 object ScheduleRepository {
     suspend fun getScheduleByGroup(groupName: String) = dbQuery {
         GroupEntity.find {
             GroupsTable.name eq groupName
-        }.singleOrNull()?.lessons?.map {
-            it.toLesson()
+        }.singleOrNull()?.run {
+            Schedule(name, file.checksum, lessons.map { it.toLesson() })
         } ?: throw GroupNotFoundException()
     }
 
