@@ -1,9 +1,6 @@
 package ru.neexol.repositories
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import ru.neexol.db.entities.FileEntity
@@ -17,6 +14,13 @@ import ru.neexol.parsers.WebsiteParser
 import ru.neexol.utils.ScheduleFile
 
 object ParserRepository {
+    val periodicUpdateJob = CoroutineScope(Dispatchers.IO).launch(start = CoroutineStart.LAZY) {
+        while (true) {
+            updateSchedule()
+            delay(60 * 60 * 1000)
+        }
+    }
+
     suspend fun forceUpdateSchedule() = withContext(Dispatchers.IO) {
         transaction {
             FilesTable.deleteAll()
@@ -68,7 +72,7 @@ object ParserRepository {
     }.singleOrNull()
 
     private fun insertFile(fileName: String, checksum: String) = FileEntity.new {
-        this.name = fileName
+        this.name     = fileName
         this.checksum = checksum
     }
 
@@ -82,13 +86,13 @@ object ParserRepository {
     }
 
     private fun insertLesson(lesson: Lesson, group: GroupEntity) = LessonEntity.new {
-        this.name = lesson.name
-        this.type = lesson.type
-        this.teacher = lesson.teacher
+        this.name      = lesson.name
+        this.type      = lesson.type
+        this.teacher   = lesson.teacher
         this.classroom = lesson.classroom
-        this.group = group
-        this.day = lesson.day
-        this.number = lesson.number
-        this.weeks = lesson.weeks
+        this.group     = group
+        this.day       = lesson.day
+        this.number    = lesson.number
+        this.weeks     = lesson.weeks
     }
 }
