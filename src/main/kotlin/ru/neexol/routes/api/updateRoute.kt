@@ -1,4 +1,4 @@
-package ru.neexol.routes
+package ru.neexol.routes.api
 
 import io.ktor.server.application.*
 import io.ktor.server.response.*
