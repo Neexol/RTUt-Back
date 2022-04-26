@@ -16,19 +16,34 @@ class ExcelParser(fileStream: InputStream) {
         const val EXCLUDE_SIGN = "кр"
         const val NEW_LINE_SYMBOL = '\n'
 
+        const val START_PAYLOAD_ROW_INDEX = 3
+        const val GROUP_ROW_INDEX = 1
         const val DAYS_NUMBER = 6
-        const val LESSONS_IN_DAY_NUMBER = 6
         const val ROWS_IN_LESSON_NUMBER = 2
-        const val ROWS_IN_DAY_NUMBER = ROWS_IN_LESSON_NUMBER * LESSONS_IN_DAY_NUMBER
+        const val MIN_LESSONS_IN_DAY_NUMBER = 6
+        const val MAX_LESSONS_IN_DAY_NUMBER = 9
+        const val DEFAULT_LESSONS_IN_DAY_NUMBER = 6
+        const val DEFAULT_ROWS_IN_DAY_NUMBER = ROWS_IN_LESSON_NUMBER * DEFAULT_LESSONS_IN_DAY_NUMBER
     }
 
     private enum class WeeksType { INCLUDE, EXCLUDE }
 
     private val wb = XSSFWorkbook(fileStream)
-    private val wbSheet = wb.getSheetAt(0)
+    private val wbSheet = wb.first()
+
+    private val lessonInDayNumber = run {
+        for (lessonNumber in MIN_LESSONS_IN_DAY_NUMBER..MAX_LESSONS_IN_DAY_NUMBER) {
+            val rowIndex = START_PAYLOAD_ROW_INDEX + lessonNumber * ROWS_IN_LESSON_NUMBER
+            if (wbSheet.getRow(rowIndex).first().toString().lowercase() == "вторник") {
+                return@run lessonNumber
+            }
+        }
+        throw RuntimeException("Tuesday not found.")
+    }
+    private val rowsInDayNumber = ROWS_IN_LESSON_NUMBER * lessonInDayNumber
 
     fun parse(): Map<String, List<Lesson>> = mutableMapOf<String, List<Lesson>>().apply {
-        wbSheet.getRow(1).cellIterator().forEachRemaining { cell ->
+        wbSheet.getRow(GROUP_ROW_INDEX).cellIterator().forEachRemaining { cell ->
             GROUP_PATTERN.find(cell.toString())?.let {
                 put(it.value, getGroupLessons(cell.columnIndex))
             }
@@ -36,12 +51,12 @@ class ExcelParser(fileStream: InputStream) {
     }.also { wb.close() }
 
     private fun getGroupLessons(colBias: Int): List<Lesson> = mutableListOf<Lesson>().apply {
-        repeat(DAYS_NUMBER * ROWS_IN_DAY_NUMBER) { row ->
+        repeat((DAYS_NUMBER - 1) * rowsInDayNumber + DEFAULT_ROWS_IN_DAY_NUMBER) { row ->
             getLessonData(row, colBias).forEach { (rawName, type, teacher, classroom) ->
                 if (!rawName.isEmptyLesson()) {
                     val (name, lessonWeeks) = getWeeks(row, rawName)
-                    val day = row / ROWS_IN_DAY_NUMBER
-                    val number = row % ROWS_IN_DAY_NUMBER / ROWS_IN_LESSON_NUMBER
+                    val day = row / rowsInDayNumber
+                    val number = row % rowsInDayNumber / ROWS_IN_LESSON_NUMBER
                     add(Lesson(name.trim(), type.trim(), teacher.trim(), classroom.trim(), day, number, lessonWeeks))
                 }
             }
@@ -49,7 +64,7 @@ class ExcelParser(fileStream: InputStream) {
     }
 
     private fun getLessonData(rowIndex: Int, colBias: Int): List<List<String>> {
-        val row = wbSheet.getRow(3 + rowIndex)
+        val row = wbSheet.getRow(START_PAYLOAD_ROW_INDEX + rowIndex)
         val (name, type, teacher, classroom) = List(4) { col ->
             row.getCell(colBias + col)?.toString()
                 ?.removeSuffix(".0")
@@ -66,7 +81,7 @@ class ExcelParser(fileStream: InputStream) {
 
         return if (splitName.size == 1) {
             List(1) { listOf(
-                splitName[0],
+                splitName.first(),
                 splitType.joinToString(" "),
                 splitTeacher.joinToString(" "),
                 splitClassroom.joinToString(" ")
@@ -74,9 +89,9 @@ class ExcelParser(fileStream: InputStream) {
         } else {
             List(splitName.size) { listOf(
                 splitName[it],
-                splitType.getOrNull(it) ?: splitType[0],
-                splitTeacher.getOrNull(it) ?: splitTeacher[0],
-                splitClassroom.getOrNull(it) ?: splitClassroom[0]
+                splitType.getOrNull(it) ?: splitType.first(),
+                splitTeacher.getOrNull(it) ?: splitTeacher.first(),
+                splitClassroom.getOrNull(it) ?: splitClassroom.first()
             ) }
         }
     }
