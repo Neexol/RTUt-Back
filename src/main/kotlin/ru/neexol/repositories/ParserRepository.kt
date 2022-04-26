@@ -1,9 +1,6 @@
 package ru.neexol.repositories
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import ru.neexol.db.entities.FileEntity
@@ -11,30 +8,42 @@ import ru.neexol.db.entities.GroupEntity
 import ru.neexol.db.entities.LessonEntity
 import ru.neexol.db.tables.FilesTable
 import ru.neexol.db.tables.GroupsTable
-import ru.neexol.db.tables.LessonsTable
 import ru.neexol.models.Lesson
 import ru.neexol.parsers.ExcelParser
 import ru.neexol.parsers.WebsiteParser
-import kotlin.io.path.Path
-import kotlin.io.path.name
+import ru.neexol.utils.ScheduleFile
 
 object ParserRepository {
-    suspend fun updateSchedule() = withContext(Dispatchers.IO) {
+    val periodicUpdateJob = CoroutineScope(Dispatchers.IO).launch(start = CoroutineStart.LAZY) {
+        while (true) {
+            updateSchedule()
+            delay(60 * 60 * 1000)
+        }
+    }
+
+    suspend fun forceUpdateSchedule() = withContext(Dispatchers.IO) {
         transaction {
-            LessonsTable.deleteAll()
-            GroupsTable.deleteAll()
             FilesTable.deleteAll()
         }
-
+        updateSchedule()
+    }
+    suspend fun updateSchedule() = withContext(Dispatchers.IO) {
         WebsiteParser.parseLessonsFilesURLs().map { url ->
             launch(Dispatchers.IO) {
-                insertFileLessons(Path(url.path).name, url.openStream().use { ExcelParser(it).parse() })
+                transaction {
+                    val file = ScheduleFile(url)
+                    if (findFile(file.fileName)?.checksum != file.checksum) {
+                        val groups = ExcelParser(file.bytes.inputStream()).parse()
+                        deleteFileLessons(groups)
+                        addFileLessons(file.fileName, file.checksum, groups)
+                    }
+                }
             }
         }.joinAll()
     }
 
-    private fun insertFileLessons(fileName: String, groups: Map<String, List<Lesson>>) = transaction {
-        val file = insertFile(fileName)
+    private fun addFileLessons(fileName: String, checksum: String, groups: Map<String, List<Lesson>>) {
+        val file = insertFile(fileName, checksum)
         groups.forEach { (groupName, lessons) ->
             findGroup(groupName) ?: run {
                 val group = insertGroup(groupName, file)
@@ -45,9 +54,26 @@ object ParserRepository {
         }
     }
 
-    private fun insertFile(fileName: String) = FileEntity.new {
-        this.name = fileName
-        this.checksum = "empty"
+    private fun deleteFileLessons(groups: Map<String, List<Lesson>>) {
+        groups.keys.forEach { groupName ->
+            GroupEntity.find {
+                GroupsTable.name eq groupName
+            }.forEach { it.delete() }
+        }
+        FileEntity.all().forEach {
+            if (it.groups.empty()) {
+                it.delete()
+            }
+        }
+    }
+
+    private fun findFile(fileName: String) = FileEntity.find {
+        FilesTable.name eq fileName
+    }.singleOrNull()
+
+    private fun insertFile(fileName: String, checksum: String) = FileEntity.new {
+        this.name     = fileName
+        this.checksum = checksum
     }
 
     private fun findGroup(groupName: String) = GroupEntity.find {
@@ -60,13 +86,13 @@ object ParserRepository {
     }
 
     private fun insertLesson(lesson: Lesson, group: GroupEntity) = LessonEntity.new {
-        this.name = lesson.name
-        this.type = lesson.type
-        this.teacher = lesson.teacher
+        this.name      = lesson.name
+        this.type      = lesson.type
+        this.teacher   = lesson.teacher
         this.classroom = lesson.classroom
-        this.group = group
-        this.day = lesson.day
-        this.number = lesson.number
-        this.weeks = lesson.weeks
+        this.group     = group
+        this.day       = lesson.day
+        this.number    = lesson.number
+        this.weeks     = lesson.weeks
     }
 }

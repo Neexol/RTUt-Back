@@ -7,12 +7,11 @@ import io.ktor.server.netty.*
 import io.ktor.server.plugins.callloging.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
-import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.slf4j.event.Level
 import ru.neexol.db.DatabaseFactory
 import ru.neexol.repositories.ParserRepository
-import ru.neexol.routes.scheduleRoute
+import ru.neexol.routes.apiRoute
 
 fun main() {
     embeddedServer(Netty) {
@@ -27,14 +26,9 @@ fun main() {
         }
 
         routing {
-            get("/") {
-                call.respondText("Hello!")
-            }
-            get("/update") {
-                ParserRepository.updateSchedule()
-                call.respondText("Updated!")
-            }
-            scheduleRoute()
+            apiRoute()
         }
+
+        ParserRepository.periodicUpdateJob.start()
     }.start(wait = true)
 }
