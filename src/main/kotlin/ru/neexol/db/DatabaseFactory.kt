@@ -13,7 +13,7 @@ object DatabaseFactory {
         Database.connect(hikari())
 
         transaction {
-            SchemaUtils.create(FilesTable, LessonsTable)
+            SchemaUtils.create(FilesTable, GroupsTable, LessonsTable, AuthorsTable, NotesTable)
         }
     }
 
