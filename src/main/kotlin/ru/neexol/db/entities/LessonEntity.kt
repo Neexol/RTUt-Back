@@ -5,7 +5,7 @@ import org.jetbrains.exposed.dao.UUIDEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import ru.neexol.db.tables.LessonsTable
 import ru.neexol.db.tables.NotesTable
-import ru.neexol.models.Lesson
+import ru.neexol.models.responses.LessonResponse
 import java.util.*
 
 class LessonEntity(id: EntityID<UUID>) : UUIDEntity(id) {
@@ -25,5 +25,5 @@ class LessonEntity(id: EntityID<UUID>) : UUIDEntity(id) {
         { it.split(SEPARATOR).mapNotNull(String::toIntOrNull) }
     )
 
-    fun toLesson() = Lesson(name, type, teacher, classroom, day, number, weeks)
+    fun toLessonResponse() = LessonResponse(id.toString(), name, type, teacher, classroom, day, number, weeks)
 }

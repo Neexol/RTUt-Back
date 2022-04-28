@@ -6,7 +6,7 @@ import ru.neexol.db.entities.LessonEntity
 import ru.neexol.db.tables.GroupsTable
 import ru.neexol.db.tables.LessonsTable
 import ru.neexol.exceptions.NotFoundException
-import ru.neexol.models.Schedule
+import ru.neexol.models.responses.ScheduleResponse
 import ru.neexol.utils.ilike
 
 object ScheduleRepository {
@@ -14,7 +14,7 @@ object ScheduleRepository {
         GroupEntity.find {
             GroupsTable.name eq groupName
         }.singleOrNull()?.run {
-            Schedule(name, file.checksum, lessons.map { it.toLesson() })
+            ScheduleResponse(name, file.checksum, lessons.map { it.toLessonResponse() })
         } ?: throw NotFoundException("group")
     }
 
@@ -24,7 +24,7 @@ object ScheduleRepository {
         }.distinctBy {
             "${it.teacher}${it.classroom}${it.day}${it.number}"
         }.map {
-            it.toLesson()
+            it.toLessonResponse()
         }
     }
 

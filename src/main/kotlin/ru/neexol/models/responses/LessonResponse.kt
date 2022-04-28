@@ -1,6 +1,8 @@
-package ru.neexol.models
+package ru.neexol.models.responses
 
-class Lesson(
+@kotlinx.serialization.Serializable
+data class LessonResponse(
+    val id: String,
     val name: String,
     val type: String,
     val teacher: String,
