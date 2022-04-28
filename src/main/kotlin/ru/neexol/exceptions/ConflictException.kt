@@ -2,4 +2,4 @@ package ru.neexol.exceptions
 
 import io.ktor.http.*
 
-class ConflictException: HttpException(HttpStatusCode.Conflict, "Conflict")
+class ConflictException(text: String): HttpException(HttpStatusCode.Conflict, "Conflict: $text")

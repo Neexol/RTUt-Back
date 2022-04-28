@@ -5,7 +5,7 @@ import ru.neexol.db.entities.GroupEntity
 import ru.neexol.db.entities.LessonEntity
 import ru.neexol.db.tables.GroupsTable
 import ru.neexol.db.tables.LessonsTable
-import ru.neexol.exceptions.notfound.GroupNotFoundException
+import ru.neexol.exceptions.NotFoundException
 import ru.neexol.models.Schedule
 import ru.neexol.utils.ilike
 
@@ -15,7 +15,7 @@ object ScheduleRepository {
             GroupsTable.name eq groupName
         }.singleOrNull()?.run {
             Schedule(name, file.checksum, lessons.map { it.toLesson() })
-        } ?: throw GroupNotFoundException()
+        } ?: throw NotFoundException("group")
     }
 
     suspend fun getScheduleByTeacher(teacher: String) = dbQuery {
@@ -31,6 +31,6 @@ object ScheduleRepository {
     suspend fun getChecksumByGroup(groupName: String) = dbQuery {
         GroupEntity.find {
             GroupsTable.name eq groupName
-        }.singleOrNull()?.file?.checksum ?: throw GroupNotFoundException()
+        }.singleOrNull()?.file?.checksum ?: throw NotFoundException("group")
     }
 }

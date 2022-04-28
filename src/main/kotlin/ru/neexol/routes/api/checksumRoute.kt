@@ -4,7 +4,6 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import ru.neexol.exceptions.MissingParametersException
-import ru.neexol.exceptions.respondThrowable
 import ru.neexol.repositories.ScheduleRepository
 
 fun Route.checksumRoute() {
@@ -15,14 +14,9 @@ fun Route.checksumRoute() {
 
 private fun Route.getChecksumEndpoint() {
     get {
-        runCatching {
-            call.request.queryParameters["group"]?.let {
-                ScheduleRepository.getChecksumByGroup(it)
-            } ?: throw MissingParametersException()
-        }.onSuccess {
-            call.respond(it)
-        }.onFailure {
-            call.respondThrowable(it)
-        }
+        val response = call.request.queryParameters["group"]?.let {
+            ScheduleRepository.getChecksumByGroup(it)
+        } ?: throw MissingParametersException("group")
+        call.respond(response)
     }
 }
