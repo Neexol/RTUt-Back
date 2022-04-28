@@ -8,4 +8,5 @@ fun Route.apiRoute() {
     updateRoute()
     checksumRoute()
     scheduleRoute()
+    notesRoute()
 }

@@ -4,6 +4,7 @@ import org.jetbrains.exposed.dao.UUIDEntity
 import org.jetbrains.exposed.dao.UUIDEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import ru.neexol.db.tables.NotesTable
+import ru.neexol.models.responses.NoteResponse
 import java.util.*
 
 class NoteEntity(id: EntityID<UUID>): UUIDEntity(id) {
@@ -13,4 +14,6 @@ class NoteEntity(id: EntityID<UUID>): UUIDEntity(id) {
     var weeks  by NotesTable.weeks
     var author by AuthorEntity referencedOn NotesTable.author
     var type   by NotesTable.type
+
+    fun toNoteResponse() = NoteResponse(id.toString(), text, lesson.id.toString(), weeks, author.id.toString(), type)
 }

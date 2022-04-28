@@ -5,7 +5,7 @@ import ru.neexol.db.entities.GroupEntity
 import ru.neexol.db.entities.LessonEntity
 import ru.neexol.db.tables.GroupsTable
 import ru.neexol.db.tables.LessonsTable
-import ru.neexol.exceptions.GroupNotFoundException
+import ru.neexol.exceptions.notfound.GroupNotFoundException
 import ru.neexol.models.Schedule
 import ru.neexol.utils.ilike
 

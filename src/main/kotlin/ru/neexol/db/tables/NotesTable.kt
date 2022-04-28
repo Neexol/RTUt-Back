@@ -9,5 +9,5 @@ object NotesTable : UUIDTable() {
     val lesson = reference("lesson", LessonsTable, onDelete = ReferenceOption.CASCADE)
     val weeks  = text("weeks")
     val author = reference("author", AuthorsTable, onUpdate = ReferenceOption.CASCADE, onDelete = ReferenceOption.CASCADE)
-    val type   = enumeration<NoteType>("type")
+    val type   = enumerationByName<NoteType>("type", 7)
 }
