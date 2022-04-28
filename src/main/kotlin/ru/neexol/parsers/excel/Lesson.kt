@@ -1,4 +1,4 @@
-package ru.neexol.models
+package ru.neexol.parsers.excel
 
 class Lesson(
     val name: String,
