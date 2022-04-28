@@ -9,4 +9,5 @@ fun Route.apiRoute() {
     checksumRoute()
     scheduleRoute()
     notesRoute()
+    authorsRoute()
 }
