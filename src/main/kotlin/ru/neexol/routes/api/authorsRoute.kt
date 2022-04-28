@@ -7,7 +7,13 @@ import ru.neexol.exceptions.respondThrowable
 import ru.neexol.repositories.AuthorsRepository
 
 fun Route.authorsRoute() {
-    get("authors") {
+    route("authors") {
+        postAuthorEndpoint()
+    }
+}
+
+private fun Route.postAuthorEndpoint() {
+    post {
         runCatching {
             AuthorsRepository.getNewAuthorId()
         }.onSuccess {

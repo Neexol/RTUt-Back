@@ -8,7 +8,13 @@ import ru.neexol.exceptions.respondThrowable
 import ru.neexol.repositories.ScheduleRepository
 
 fun Route.checksumRoute() {
-    get("/checksum") {
+    route("checksum") {
+        getChecksumEndpoint()
+    }
+}
+
+private fun Route.getChecksumEndpoint() {
+    get {
         runCatching {
             call.request.queryParameters["group"]?.let {
                 ScheduleRepository.getChecksumByGroup(it)

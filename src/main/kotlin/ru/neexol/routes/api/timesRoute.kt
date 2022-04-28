@@ -6,7 +6,13 @@ import io.ktor.server.routing.*
 import ru.neexol.utils.lessonTimes
 
 fun Route.timesRoute() {
-    get("/times") {
+    route("times") {
+        getTimesEndpoint()
+    }
+}
+
+private fun Route.getTimesEndpoint() {
+    get {
         call.respond(lessonTimes)
     }
 }

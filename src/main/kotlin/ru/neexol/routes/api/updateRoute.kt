@@ -6,12 +6,16 @@ import io.ktor.server.routing.*
 import ru.neexol.repositories.ParserRepository
 
 fun Route.updateRoute() {
-    get("/update") {
-        ParserRepository.updateSchedule()
-        call.respondText("Updated!")
+    route("update") {
+        updateScheduleEndpoint()
     }
-    get("/force-update") {
-        ParserRepository.forceUpdateSchedule()
+}
+
+private fun Route.updateScheduleEndpoint() {
+    get {
+        call.request.queryParameters["force"]?.let {
+            ParserRepository.forceUpdateSchedule()
+        } ?: ParserRepository.updateSchedule()
         call.respondText("Updated!")
     }
 }

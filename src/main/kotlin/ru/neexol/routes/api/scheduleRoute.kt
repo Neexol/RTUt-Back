@@ -8,7 +8,13 @@ import ru.neexol.exceptions.respondThrowable
 import ru.neexol.repositories.ScheduleRepository
 
 fun Route.scheduleRoute() {
-    get("/schedule") {
+    route("schedule") {
+        getScheduleEndpoint()
+    }
+}
+
+private fun Route.getScheduleEndpoint() {
+    get {
         runCatching {
             call.request.queryParameters["group"]?.let {
                 ScheduleRepository.getScheduleByGroup(it)

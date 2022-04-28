@@ -8,7 +8,13 @@ import ru.neexol.exceptions.respondThrowable
 import ru.neexol.repositories.NotesRepository
 
 fun Route.notesRoute() {
-    put("/notes") {
+    route("notes") {
+        putNoteEndpoint()
+    }
+}
+
+private fun Route.putNoteEndpoint() {
+    put {
         runCatching {
             NotesRepository.putNote(call.receive())
         }.onSuccess {
