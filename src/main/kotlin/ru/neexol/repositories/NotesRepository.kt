@@ -10,14 +10,14 @@ import ru.neexol.models.requests.PutNoteRequest
 import java.util.*
 
 object NotesRepository {
-    suspend fun putNote(request: PutNoteRequest) = dbQuery {
+    suspend fun putNote(id: String?, request: PutNoteRequest) = dbQuery {
         val lesson = LessonEntity.findById(UUID.fromString(request.lessonId)) ?: throw NotFoundException("lesson")
         val author = AuthorEntity.findById(UUID.fromString(request.authorId)) ?: throw NotFoundException("author")
         val isConflict = author.notes.any {
             it.lesson == lesson && it.weeks == request.weeks && it.type == request.type
         }
 
-        if (request.id == null) {
+        if (id == null) {
             if (isConflict) {
                 throw ConflictException("notes limit")
             }
@@ -30,7 +30,7 @@ object NotesRepository {
                 this.type   = request.type
             }
         } else {
-            val note = NoteEntity.findById(UUID.fromString(request.id)) ?: throw NotFoundException("note")
+            val note = NoteEntity.findById(UUID.fromString(id)) ?: throw NotFoundException("note")
             if (isConflict && (note.weeks != request.weeks || note.type != request.type)) {
                 throw ConflictException("notes limit")
             }

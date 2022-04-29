@@ -7,14 +7,14 @@ import io.ktor.server.routing.*
 import ru.neexol.repositories.NotesRepository
 
 fun Route.notesRoute() {
-    route("notes") {
+    route("notes/{id?}") {
         putNoteEndpoint()
     }
 }
 
 private fun Route.putNoteEndpoint() {
     put {
-        val response = NotesRepository.putNote(call.receive())
+        val response = NotesRepository.putNote(call.parameters["id"], call.receive())
         call.respond(response)
     }
 }
