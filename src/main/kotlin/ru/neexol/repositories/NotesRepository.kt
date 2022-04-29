@@ -8,9 +8,18 @@ import ru.neexol.exceptions.ConflictException
 import ru.neexol.exceptions.NotFoundException
 import ru.neexol.exceptions.UnauthorizedException
 import ru.neexol.models.requests.PutNoteRequest
+import ru.neexol.utils.NoteType
 import java.util.*
 
 object NotesRepository {
+    suspend fun getNotes(lessonId: String, week: String, authorId: String) = dbQuery {
+        LessonEntity.findById(UUID.fromString(lessonId))?.let { lesson ->
+            lesson.notes.filter {
+                it.weeks.contains(week) && (it.type == NoteType.PUBLIC || it.author.id.toString() == authorId)
+            }.map { it.toNoteResponse() }
+        } ?: throw NotFoundException("lesson")
+    }
+
     suspend fun putNote(id: String?, request: PutNoteRequest) = dbQuery {
         val lesson = LessonEntity.findById(UUID.fromString(request.lessonId)) ?: throw NotFoundException("lesson")
         val author = AuthorEntity.findById(UUID.fromString(request.authorId)) ?: throw NotFoundException("author")

@@ -9,8 +9,22 @@ import ru.neexol.repositories.NotesRepository
 
 fun Route.notesRoute() {
     route("notes/{id?}") {
+        getNotesEndpoint()
         putNoteEndpoint()
         deleteNoteEndpoint()
+    }
+}
+
+private fun Route.getNotesEndpoint() {
+    get {
+        val response = call.request.queryParameters["lessonId"]?.let { lessonId ->
+            call.request.queryParameters["week"]?.let { week ->
+                call.request.queryParameters["authorId"]?.let { authorId ->
+                    NotesRepository.getNotes(lessonId, week, authorId)
+                } ?: throw MissingParametersException("authorId")
+            } ?: throw MissingParametersException("week")
+        } ?: throw MissingParametersException("lessonId")
+        call.respond(response)
     }
 }
 
