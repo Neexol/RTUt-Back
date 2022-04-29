@@ -1,4 +1,4 @@
-package ru.neexol.routes.api
+package ru.neexol.routes.api.schedule
 
 import io.ktor.server.application.*
 import io.ktor.server.response.*
@@ -8,6 +8,9 @@ import ru.neexol.repositories.ScheduleRepository
 
 fun Route.scheduleRoute() {
     route("schedule") {
+        timesRoute()
+        updateRoute()
+        checksumRoute()
         getScheduleEndpoint()
     }
 }

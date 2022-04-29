@@ -1,4 +1,4 @@
-package ru.neexol.routes.api
+package ru.neexol.routes.api.notes
 
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -9,6 +9,7 @@ import ru.neexol.repositories.NotesRepository
 
 fun Route.notesRoute() {
     route("notes/{id?}") {
+        authorsRoute()
         getNotesEndpoint()
         putNoteEndpoint()
         deleteNoteEndpoint()
