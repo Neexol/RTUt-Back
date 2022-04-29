@@ -1,7 +1,6 @@
-package ru.neexol.parsers
+package ru.neexol.parsers.excel
 
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
-import ru.neexol.models.Lesson
 import java.io.InputStream
 
 class ExcelParser(fileStream: InputStream) {

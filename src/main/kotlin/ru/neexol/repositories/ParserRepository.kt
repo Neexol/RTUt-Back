@@ -8,10 +8,9 @@ import ru.neexol.db.entities.GroupEntity
 import ru.neexol.db.entities.LessonEntity
 import ru.neexol.db.tables.FilesTable
 import ru.neexol.db.tables.GroupsTable
-import ru.neexol.models.Lesson
-import ru.neexol.parsers.ExcelParser
-import ru.neexol.parsers.WebsiteParser
-import ru.neexol.utils.ScheduleFile
+import ru.neexol.parsers.excel.ExcelParser
+import ru.neexol.parsers.excel.Lesson
+import ru.neexol.parsers.website.WebsiteParser
 
 object ParserRepository {
     val periodicUpdateJob = CoroutineScope(Dispatchers.IO).launch(start = CoroutineStart.LAZY) {
@@ -27,11 +26,11 @@ object ParserRepository {
         }
         updateSchedule()
     }
+
     suspend fun updateSchedule() = withContext(Dispatchers.IO) {
-        WebsiteParser.parseLessonsFilesURLs().map { url ->
+        WebsiteParser.parseLessonsFilesURLs().map { file ->
             launch(Dispatchers.IO) {
                 transaction {
-                    val file = ScheduleFile(url)
                     if (findFile(file.fileName)?.checksum != file.checksum) {
                         val groups = ExcelParser(file.bytes.inputStream()).parse()
                         deleteFileLessons(groups)

@@ -1,7 +1,6 @@
-package ru.neexol.models
+package ru.neexol.parsers.excel
 
-@kotlinx.serialization.Serializable
-data class Lesson(
+class Lesson(
     val name: String,
     val type: String,
     val teacher: String,

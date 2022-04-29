@@ -1,4 +1,4 @@
-package ru.neexol.utils
+package ru.neexol.parsers.website
 
 import org.apache.commons.codec.digest.DigestUtils
 import java.net.URL
