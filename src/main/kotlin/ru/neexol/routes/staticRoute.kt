@@ -5,6 +5,7 @@ import io.ktor.server.routing.*
 
 fun Route.staticRoute() {
     static("static") {
+        staticBasePackage = "static"
         resources(".")
     }
 }
