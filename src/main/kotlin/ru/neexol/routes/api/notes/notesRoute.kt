@@ -8,11 +8,13 @@ import ru.neexol.exceptions.MissingParametersException
 import ru.neexol.repositories.NotesRepository
 
 fun Route.notesRoute() {
-    route("notes/{id?}") {
+    route("notes") {
         authorsRoute()
         getNotesEndpoint()
-        putNoteEndpoint()
-        deleteNoteEndpoint()
+        route("{noteId?}") {
+            putNoteEndpoint()
+            deleteNoteEndpoint()
+        }
     }
 }
 
@@ -31,18 +33,18 @@ private fun Route.getNotesEndpoint() {
 
 private fun Route.putNoteEndpoint() {
     put {
-        val response = NotesRepository.putNote(call.parameters["id"], call.receive())
+        val response = NotesRepository.putNote(call.parameters["noteId"], call.receive())
         call.respond(response)
     }
 }
 
 private fun Route.deleteNoteEndpoint() {
     delete {
-        val response = call.parameters["id"]?.let {  id ->
+        val response = call.parameters["noteId"]?.let {  noteId ->
             call.parameters["authorId"]?.let {  authorId ->
-                NotesRepository.deleteNote(id, authorId)
+                NotesRepository.deleteNote(noteId, authorId)
             } ?: throw MissingParametersException("authorId")
-        } ?: throw MissingParametersException("id")
+        } ?: throw MissingParametersException("noteId")
         call.respond(response)
     }
 }

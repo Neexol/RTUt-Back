@@ -6,14 +6,14 @@ import io.ktor.server.routing.*
 import ru.neexol.repositories.AuthorsRepository
 
 fun Route.authorsRoute() {
-    route("authors") {
+    route("authors/{authorId?}") {
         postAuthorEndpoint()
     }
 }
 
 private fun Route.postAuthorEndpoint() {
-    post {
-        val response = AuthorsRepository.getNewAuthorId()
+    put {
+        val response = AuthorsRepository.putAuthorId(call.parameters["authorId"])
         call.respond(response)
     }
 }
