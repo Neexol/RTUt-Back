@@ -5,6 +5,6 @@ import ru.neexol.db.entities.AuthorEntity
 
 object AuthorsRepository {
     suspend fun getNewAuthorId() = dbQuery {
-        AuthorEntity.new {}.id.value.toString()
+        AuthorEntity.new {}.id.toString()
     }
 }

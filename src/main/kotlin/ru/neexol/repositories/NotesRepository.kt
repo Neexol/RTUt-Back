@@ -6,6 +6,7 @@ import ru.neexol.db.entities.LessonEntity
 import ru.neexol.db.entities.NoteEntity
 import ru.neexol.exceptions.ConflictException
 import ru.neexol.exceptions.NotFoundException
+import ru.neexol.exceptions.UnauthorizedException
 import ru.neexol.models.requests.PutNoteRequest
 import java.util.*
 
@@ -41,5 +42,14 @@ object NotesRepository {
                 type = request.type
             }
         }.toNoteResponse()
+    }
+
+    suspend fun deleteNote(id: String, authorId: String) = dbQuery {
+        NoteEntity.findById(UUID.fromString(id))?.run {
+            if (author.id.toString() == authorId) {
+                delete()
+                id
+            } else throw UnauthorizedException("note")
+        } ?: throw NotFoundException("note")
     }
 }
