@@ -14,7 +14,7 @@ fun Route.checksumRoute() {
 
 private fun Route.getChecksumEndpoint() {
     get {
-        val response = call.request.queryParameters["group"]?.let {
+        val response = call.parameters["group"]?.let {
             ScheduleRepository.getChecksumByGroup(it)
         } ?: throw MissingParametersException("group")
         call.respond(response)

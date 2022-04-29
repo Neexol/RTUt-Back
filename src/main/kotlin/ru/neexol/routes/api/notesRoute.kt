@@ -17,9 +17,9 @@ fun Route.notesRoute() {
 
 private fun Route.getNotesEndpoint() {
     get {
-        val response = call.request.queryParameters["lessonId"]?.let { lessonId ->
-            call.request.queryParameters["week"]?.let { week ->
-                call.request.queryParameters["authorId"]?.let { authorId ->
+        val response = call.parameters["lessonId"]?.let { lessonId ->
+            call.parameters["week"]?.let { week ->
+                call.parameters["authorId"]?.let { authorId ->
                     NotesRepository.getNotes(lessonId, week, authorId)
                 } ?: throw MissingParametersException("authorId")
             } ?: throw MissingParametersException("week")

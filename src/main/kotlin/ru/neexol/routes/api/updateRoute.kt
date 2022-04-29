@@ -13,7 +13,7 @@ fun Route.updateRoute() {
 
 private fun Route.updateScheduleEndpoint() {
     get {
-        call.request.queryParameters["force"]?.let {
+        call.parameters["force"]?.let {
             ParserRepository.forceUpdateSchedule()
         } ?: ParserRepository.updateSchedule()
         call.respondText("Updated!")

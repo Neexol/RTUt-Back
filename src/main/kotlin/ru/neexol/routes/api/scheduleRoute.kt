@@ -14,9 +14,9 @@ fun Route.scheduleRoute() {
 
 private fun Route.getScheduleEndpoint() {
     get {
-        val response = call.request.queryParameters["group"]?.let {
+        val response = call.parameters["group"]?.let {
             ScheduleRepository.getScheduleByGroup(it)
-        } ?: call.request.queryParameters["teacher"]?.let {
+        } ?: call.parameters["teacher"]?.let {
             ScheduleRepository.getScheduleByTeacher(it)
         } ?: throw MissingParametersException("group or teacher")
         call.respond(response)
