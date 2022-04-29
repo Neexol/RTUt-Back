@@ -18,6 +18,7 @@ object WebsiteParser {
     private fun parseFilesPaths(predicate: (String) -> Boolean) = Jsoup.connect(SCHEDULE_URL).get()
         .select(LINKS_SELECTOR)
         .eachAttr("href")
+        .filter { it.endsWith(".xlsx") }
         .filter(predicate)
         .map { ScheduleFile(URL(it)) }
 }
