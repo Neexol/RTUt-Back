@@ -56,7 +56,3 @@ dependencies {
     // Apache Log4j
     implementation("org.apache.logging.log4j:log4j-core:$apacheLog4jVersion")
 }
-
-tasks {
-    create("stage").dependsOn("installDist")
-}

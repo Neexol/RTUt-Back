@@ -1,1 +1,0 @@
-web: ./build/install/RTUt/bin/RTUt
