@@ -5,6 +5,8 @@ import ru.neexol.routes.api.notes.notesRoute
 import ru.neexol.routes.api.schedule.scheduleRoute
 
 fun Route.apiRoute() {
-    scheduleRoute()
-    notesRoute()
+    route("api") {
+        scheduleRoute()
+        notesRoute()
+    }
 }

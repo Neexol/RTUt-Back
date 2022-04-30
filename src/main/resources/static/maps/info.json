@@ -1,0 +1,20 @@
+{
+  "date": 20220429,
+  "maps": [
+    {
+      "file": "floor_0.svg"
+    },
+    {
+      "file": "floor_1.svg"
+    },
+    {
+      "file": "floor_2.svg"
+    },
+    {
+      "file": "floor_3.svg"
+    },
+    {
+      "file": "floor_4.svg"
+    }
+  ]
+}
