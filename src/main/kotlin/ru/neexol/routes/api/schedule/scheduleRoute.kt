@@ -8,6 +8,7 @@ import ru.neexol.repositories.ScheduleRepository
 
 fun Route.scheduleRoute() {
     route("schedule") {
+        timesRoute()
         updateRoute()
         checksumRoute()
         getScheduleEndpoint()
