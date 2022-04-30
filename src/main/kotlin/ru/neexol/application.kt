@@ -7,7 +7,7 @@ import ru.neexol.plugins.installPlugins
 import ru.neexol.repositories.ParserRepository
 
 fun main() {
-    embeddedServer(Netty) {
+    embeddedServer(Netty, port = System.getenv("PORT").toInt()) {
         DatabaseFactory.init()
         installPlugins()
         ParserRepository.periodicUpdateJob.start()
