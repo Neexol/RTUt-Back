@@ -19,7 +19,7 @@ object DatabaseFactory {
 
     private fun hikari() = HikariDataSource(HikariConfig().apply {
         jdbcUrl = System.getenv("JDBC_DATABASE_URL")
-        maximumPoolSize = 50
+        maximumPoolSize = 20
         isAutoCommit = false
         transactionIsolation = "TRANSACTION_REPEATABLE_READ"
         validate()
