@@ -3,7 +3,7 @@ package ru.neexol.routes.api.notes
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import ru.neexol.repositories.AuthorsRepository
+import ru.neexol.repositories.NotesRepository
 
 fun Route.authorsRoute() {
     route("authors/{authorId?}") {
@@ -13,7 +13,7 @@ fun Route.authorsRoute() {
 
 private fun Route.postAuthorEndpoint() {
     put {
-        val response = AuthorsRepository.putAuthorId(call.parameters["authorId"])
+        val response = NotesRepository.putAuthorId(call.parameters["authorId"])
         call.respond(response)
     }
 }

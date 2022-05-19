@@ -12,6 +12,16 @@ import ru.neexol.utils.NoteType
 import java.util.*
 
 object NotesRepository {
+    suspend fun putAuthorId(authorId: String?) = dbQuery {
+        if (authorId == null) {
+            AuthorEntity.new {}
+        } else {
+            AuthorEntity.findById(UUID.fromString(authorId)) ?: throw NotFoundException("author")
+        }.id.toString()
+    }
+
+
+
     suspend fun getNotes(lessonId: String, week: String, authorId: String) = dbQuery {
         LessonEntity.findById(UUID.fromString(lessonId))?.let { lesson ->
             lesson.notes.filter {

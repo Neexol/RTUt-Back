@@ -28,7 +28,7 @@ object ParserRepository {
     }
 
     suspend fun updateSchedule() = withContext(Dispatchers.IO) {
-        WebsiteParser.parseLessonsFilesURLs().map { file ->
+        WebsiteParser.parseLessonsFiles().map { file ->
             launch(Dispatchers.IO) {
                 transaction {
                     if (findFile(file.fileName)?.checksum != file.checksum) {
