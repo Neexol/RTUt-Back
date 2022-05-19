@@ -12,6 +12,10 @@ object WebsiteParser {
     fun parseLessonsFiles() = Jsoup.connect(SCHEDULE_URL).get()
         .select(LINKS_SELECTOR)
         .eachAttr("href")
-        .filter { it.endsWith(".xlsx") && (it.contains("экз") || it.contains("зач")) }
+        .filter {
+            it.contains("ИИТ") &&
+                    it.endsWith(".xlsx") &&
+                    (it.contains("экз") || it.contains("зач"))
+        }
         .map { ScheduleFile(URL(it)) }
 }
