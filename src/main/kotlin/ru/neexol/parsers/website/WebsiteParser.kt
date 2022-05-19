@@ -15,7 +15,8 @@ object WebsiteParser {
         .filter {
             it.contains("ИИТ") &&
                     it.endsWith(".xlsx") &&
-                    (it.contains("экз") || it.contains("зач"))
+                    !it.contains("экз") &&
+                    !it.contains("зач")
         }
         .map { ScheduleFile(URL(it)) }
 }
